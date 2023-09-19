@@ -7,8 +7,8 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Node Js
-        uses: actions/setup-node@v1
+      # - name: Node Js
+      #   uses: actions/setup-node@v1
       - name: SSH Remote Commands
         uses: appleboy/ssh-action@v1.0.0
         with:
@@ -18,6 +18,8 @@ jobs:
           script: |
             cd /home/ut-insider/htdocs/be-ut-insider.dev.ut.web.id/BE-Insider
             git pull origin master
+            export NVM_DIR=~/.nvm
+            source ~/.nvm/nvm.sh 
             npm install
             npm run build
             pm2 reload npm -- run start:prod --name npm
