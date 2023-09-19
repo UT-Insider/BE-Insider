@@ -19,7 +19,7 @@ export class AppUpdate {
     @Context() [reaction, user]: [MessageReaction, User],
   ) {
     this.logger.log(`Reaction added: ${reaction.emoji.name} by ${user.tag}`);
-    axios.post(process.env.SIA_BE, {
+    axios.post(process.env.URL_SIA_BE, {
       query: `mutation addInsiderPointFromDiscord($secret: String, $content: String, $discordUsername: String, $type:String) {
         addInsiderPointFromDiscord(secret: $secret, content: $content, discordUsername: $discordUsername, type: $type)
       }
@@ -37,7 +37,7 @@ export class AppUpdate {
     @Context() [reaction, user]: [MessageReaction, User],
   ) {
     this.logger.log(`Reaction removed: ${reaction.emoji.name} by ${user.tag}`);
-    axios.post(process.env.SIA_BE, {
+    axios.post(process.env.URL_SIA_BE, {
       query: `mutation addInsiderPointFromDiscord($secret: String, $content: String, $discordUsername: String, $type:String) {
         addInsiderPointFromDiscord(secret: $secret, content: $content, discordUsername: $discordUsername, type: $type)
       }
@@ -72,7 +72,7 @@ export class AppUpdate {
       }
     }
 
-    axios.post(process.env.SIA_BE, {
+    axios.post(process.env.URL_SIA_BE, {
       query: `mutation addInsiderPointFromDiscord($secret: String, $content: String, $discordUsername: String) {
         addInsiderPointFromDiscord(secret: $secret, content: $content, discordUsername: $discordUsername)
       }
