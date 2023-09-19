@@ -7,6 +7,8 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
+      - name: Node Js
+        uses: actions/setup-node@v1
       - name: SSH Remote Commands
         uses: appleboy/ssh-action@v1.0.0
         with:
@@ -14,7 +16,7 @@ jobs:
           username: ${{ secrets.USERNAME }}
           password: ${{ secrets.PASSWORD }}
           script: |
-            cd ~/htdocs/be-ut-insider.dev.ut.web.id/BE-Insider
+            cd /home/ut-insider/htdocs/be-ut-insider.dev.ut.web.id/BE-Insider
             git pull origin master
             npm install
             npm run build
