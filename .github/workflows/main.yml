@@ -14,10 +14,10 @@ jobs:
           username: ${{ secrets.USERNAME }}
           password: ${{ secrets.PASSWORD }}
           script: |
-          cd ~/htdocs/be-ut-insider.dev.ut.web.id/BE-Insider
-          git pull origin master
-          npm install
-          npm run build
-          pm2 reload npm -- run start:prod --name npm
+            cd ~/htdocs/be-ut-insider.dev.ut.web.id/BE-Insider
+            git pull origin master
+            npm install
+            npm run build
+            pm2 reload npm -- run start:prod --name npm
           
             
