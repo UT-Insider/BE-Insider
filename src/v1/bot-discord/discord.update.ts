@@ -69,7 +69,12 @@ export class AppUpdate {
         this.logger.log(`${message.author.tag} is not verified!`);
       }
     }
-
+    const connectedRole = message.guild.roles.cache.find(
+      (role) => role.name === 'Connected',
+    );
+    const notConnectedRole = message.guild.roles.cache.find(
+      (role) => role.name === 'Not Connected',
+    );
     axios
       .post(process.env.URL_SIA_BE, {
         query: `mutation addInsiderPointFromDiscord($secret: String, $content: String, $discordUsername: String) {
@@ -83,13 +88,14 @@ export class AppUpdate {
         },
       })
       .then(async () => {
-        const connectedRole = message.guild.roles.cache.find(
-          (role) => role.name === 'Connected',
-        );
-        if (connectedRole) {
-          await member.roles.add(connectedRole);
-          this.logger.log(`Added role "Connected" to ${message.author.tag}`);
-        }
+        await member.roles.add(connectedRole);
+        await member.roles.remove(notConnectedRole);
+        this.logger.log(`Added role "Connected" to ${message.author.tag}`);
+      })
+      .catch(async (err) => {
+        await member.roles.add(notConnectedRole);
+        await member.roles.remove(connectedRole);
+        this.logger.log(`Remove role "Connected" to ${message.author.tag}`);
       });
 
     // console.log(message);
