@@ -25,7 +25,7 @@ export class AppUpdate {
       }
       `,
       variables: {
-        secret: '342234',
+        secret: process.env.SECRET_AUTH,
         type: 'reactionAdd',
         discordUsername: user.tag,
       },
@@ -43,7 +43,7 @@ export class AppUpdate {
       }
       `,
       variables: {
-        secret: '342234',
+        secret: process.env.SECRET_AUTH,
         type: 'reactionRemove',
         discordUsername: user.tag,
       },
@@ -78,7 +78,7 @@ export class AppUpdate {
       }
       `,
       variables: {
-        secret: '342234',
+        secret: process.env.SECRET_AUTH,
         content: message.content,
         discordUsername: message.author.tag,
       },
