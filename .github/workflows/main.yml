@@ -4,16 +4,24 @@ on:
     branches: [ master ]
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Run a one-line script
-        run: echo Hello, world!
+      # - name: Node Js
+      #   uses: actions/setup-node@v1
       - name: SSH Remote Commands
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           password: ${{ secrets.PASSWORD }}
-          script: whoami
+          script: |
+            cd /home/ut-insider/htdocs/be-ut-insider.dev.ut.web.id/BE-Insider
+            git pull origin master
+            export NVM_DIR=~/.nvm
+            source ~/.nvm/nvm.sh 
+            npm install
+            npm run build
+            pm2 reload npm -- run start:prod --name npm
+          
             
