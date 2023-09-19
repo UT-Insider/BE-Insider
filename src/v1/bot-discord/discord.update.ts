@@ -56,12 +56,10 @@ export class AppUpdate {
     this.logger.log(
       `Received message: ${message.content} from ${message.author.tag} | ${message.channelId}`,
     );
+    const member = message.guild.members.cache.get(message.author.id);
 
     if (message.guild) {
       // Dapatkan member dari message
-      const member = message.guild.members.cache.get(message.author.id);
-      console.log(member.roles.cache.map((item) => item.name));
-      // Cek apakah member punya role "verified"
       if (
         member &&
         member.roles.cache.some((role) => role.name === 'Verified')
@@ -72,17 +70,27 @@ export class AppUpdate {
       }
     }
 
-    axios.post(process.env.URL_SIA_BE, {
-      query: `mutation addInsiderPointFromDiscord($secret: String, $content: String, $discordUsername: String) {
+    axios
+      .post(process.env.URL_SIA_BE, {
+        query: `mutation addInsiderPointFromDiscord($secret: String, $content: String, $discordUsername: String) {
         addInsiderPointFromDiscord(secret: $secret, content: $content, discordUsername: $discordUsername)
       }
       `,
-      variables: {
-        secret: process.env.SECRET_AUTH,
-        content: message.content,
-        discordUsername: message.author.tag,
-      },
-    });
+        variables: {
+          secret: process.env.SECRET_AUTH,
+          content: message.content,
+          discordUsername: message.author.tag,
+        },
+      })
+      .then(async () => {
+        const connectedRole = message.guild.roles.cache.find(
+          (role) => role.name === 'Connected',
+        );
+        if (connectedRole) {
+          await member.roles.add(connectedRole);
+          this.logger.log(`Added role "Connected" to ${message.author.tag}`);
+        }
+      });
 
     // console.log(message);
   }
