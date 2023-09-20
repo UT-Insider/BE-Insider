@@ -21,4 +21,15 @@ export class AppCommands {
   ) {
     return interaction.reply({ content: `Jumlah teks nya ${text.length}` });
   }
+
+  @SlashCommand({ name: 'restart', description: 'Restart BOT' })
+  public async restart(@Context() [interaction]: SlashCommandContext) {
+    // Cek apakah message dari admin
+    if (interaction.user.tag === 'dimarhanung') {
+      await interaction.channel.send('Restarting...');
+      process.exit(1);
+    } else {
+      await interaction.reply('Kamu nggak punya izin untuk restart bot!');
+    }
+  }
 }
