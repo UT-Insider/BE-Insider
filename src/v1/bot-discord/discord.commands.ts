@@ -9,6 +9,11 @@ export class AppCommands {
     return interaction.reply({ content: 'Semangat 👀🔥' });
   }
 
+  @SlashCommand({ name: 'versi', description: 'Versi BOT' })
+  public async onVersion(@Context() [interaction]: SlashCommandContext) {
+    return interaction.reply({ content: '0.1' });
+  }
+
   @SlashCommand({ name: 'length', description: 'Mendapatkan panjang teks' })
   public async onLength(
     @Context() [interaction]: SlashCommandContext,
