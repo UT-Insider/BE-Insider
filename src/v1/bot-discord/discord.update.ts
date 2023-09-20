@@ -1,13 +1,15 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Context, On, Once, ContextOf } from 'necord';
-import { Client, VoiceState, MessageReaction, User } from 'discord.js';
+import { MessageReaction, User } from 'discord.js';
 import axios from 'axios';
 
 @Injectable()
 export class AppUpdate {
   private readonly logger = new Logger(AppUpdate.name);
 
-  public constructor(private readonly client: Client) {}
+  // public constructor(private readonly client: Client) {
+  //   this.logger.log(`AppUpdate  instance created successfully.`);
+  // }
 
   @Once('ready')
   public onReady(@Context() [client]: ContextOf<'ready'>) {
@@ -69,6 +71,8 @@ export class AppUpdate {
         this.logger.log(`${message.author.tag} is not verified!`);
       }
     }
+
+    // variabel untuk tambah/hapus role ['Connected','Not Connected']
     const connectedRole = message.guild.roles.cache.find(
       (role) => role.name === 'Connected',
     );
@@ -92,16 +96,22 @@ export class AppUpdate {
         if (res.data.errors) {
           throw 'Error Graphql';
         }
-
-        await member.roles.add(connectedRole);
-        await member.roles.remove(notConnectedRole);
-        this.logger.log(`Added role "Connected" to ${message.author.tag}`);
+        try {
+          await member.roles.add(connectedRole);
+          await member.roles.remove(notConnectedRole);
+          this.logger.log(`Added role "Connected" to ${message.author.tag}`);
+        } catch (error) {
+          this.logger.error('The Role need to be predefined!');
+        }
       })
-      .catch(async (err) => {
-        await member.roles.add(notConnectedRole);
-        await member.roles.remove(connectedRole);
-
-        this.logger.log(`Remove role "Connected" to ${message.author.tag}`);
+      .catch(async () => {
+        try {
+          await member.roles.add(notConnectedRole);
+          await member.roles.remove(connectedRole);
+          this.logger.log(`Remove role "Connected" to ${message.author.tag}`);
+        } catch (error) {
+          this.logger.error('The Role need to be predefined!');
+        }
       });
 
     // console.log(message);
@@ -112,7 +122,7 @@ export class AppUpdate {
     this.logger.warn(message);
   }
 
-  // pantai member left/join voice chanenl
+  // pantau member left/join voice channel
   @On('voiceStateUpdate')
   public async onVoiceStateUpdate(
     @Context() [before, after]: ContextOf<'voiceStateUpdate'>,
