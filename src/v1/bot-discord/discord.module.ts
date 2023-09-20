@@ -25,6 +25,7 @@ import { AppUpdate } from './discord.update';
         IntentsBitField.Flags.GuildMessageReactions,
         IntentsBitField.Flags.DirectMessageReactions,
         IntentsBitField.Flags.GuildEmojisAndStickers,
+        IntentsBitField.Flags.GuildVoiceStates,
       ],
     }),
   ],
