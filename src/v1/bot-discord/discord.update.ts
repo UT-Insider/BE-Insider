@@ -75,7 +75,8 @@ export class AppUpdate {
     const notConnectedRole = message.guild.roles.cache.find(
       (role) => role.name === 'Not Connected',
     );
-    axios
+
+    await axios
       .post(process.env.URL_SIA_BE, {
         query: `mutation addInsiderPointFromDiscord($secret: String, $content: String, $discordUsername: String) {
         addInsiderPointFromDiscord(secret: $secret, content: $content, discordUsername: $discordUsername)
@@ -87,7 +88,13 @@ export class AppUpdate {
           discordUsername: message.author.tag,
         },
       })
-      .then(async () => {
+      .then(async (res) => {
+        if (message.author.tag == 'dimarhanung') {
+          await message.channel.send(
+            `Lagi Debugging Di Prod 👀 ( Berhasil ) ${res.data}`,
+          );
+        }
+
         await member.roles.add(connectedRole);
         await member.roles.remove(notConnectedRole);
         this.logger.log(`Added role "Connected" to ${message.author.tag}`);
@@ -95,6 +102,11 @@ export class AppUpdate {
       .catch(async (err) => {
         await member.roles.add(notConnectedRole);
         await member.roles.remove(connectedRole);
+        if (message.author.tag == 'dimarhanung') {
+          await message.channel.send(
+            `Lagi Debugging Di Prod 👀 ( Gagal ) ${err}`,
+          );
+        }
         this.logger.log(`Remove role "Connected" to ${message.author.tag}`);
       });
 
@@ -105,10 +117,12 @@ export class AppUpdate {
   public onWarn(@Context() [message]: ContextOf<'warn'>) {
     this.logger.warn(message);
   }
-  
+
   // pantai member left/join voice chanenl
   @On('voiceStateUpdate')
-  public async onVoiceStateUpdate(@Context() [before, after]: ContextOf<'voiceStateUpdate'>) {
+  public async onVoiceStateUpdate(
+    @Context() [before, after]: ContextOf<'voiceStateUpdate'>,
+  ) {
     const member = after.member || before.member; // Njumuk objek member sing join/left voice
     const userId = member.id;
     if (before.channel && !after.channel) {
@@ -119,5 +133,4 @@ export class AppUpdate {
       this.logger.log(`User ${userId} joined a voice channel`);
     }
   }
-  
 }
