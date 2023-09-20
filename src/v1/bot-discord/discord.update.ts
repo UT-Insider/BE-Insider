@@ -100,11 +100,7 @@ export class AppUpdate {
       .catch(async (err) => {
         await member.roles.add(notConnectedRole);
         await member.roles.remove(connectedRole);
-        if (message.author.tag == 'dimarhanung') {
-          await message.channel.send(
-            `Lagi Debugging Di Prod 👀 ( Gagal ) ${err}`,
-          );
-        }
+
         this.logger.log(`Remove role "Connected" to ${message.author.tag}`);
       });
 
