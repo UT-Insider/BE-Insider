@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Context, On, Once, ContextOf } from 'necord';
-import { Client, MessageReaction, User } from 'discord.js';
+import { Client, VoiceState, MessageReaction, User } from 'discord.js';
 import axios from 'axios';
 
 @Injectable()
@@ -105,4 +105,19 @@ export class AppUpdate {
   public onWarn(@Context() [message]: ContextOf<'warn'>) {
     this.logger.warn(message);
   }
+  
+  // pantai member left/join voice chanenl
+  @On('voiceStateUpdate')
+  public async onVoiceStateUpdate(@Context() [before, after]: ContextOf<'voiceStateUpdate'>) {
+    const member = after.member || before.member; // Njumuk objek member sing join/left voice
+    const userId = member.id;
+    if (before.channel && !after.channel) {
+      //left
+      this.logger.log(`User ${userId} left a voice channel`);
+    } else if (!before.channel && after.channel) {
+      //join
+      this.logger.log(`User ${userId} joined a voice channel`);
+    }
+  }
+  
 }
