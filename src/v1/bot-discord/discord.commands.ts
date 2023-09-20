@@ -6,7 +6,7 @@ import { LengthDto } from './dtos/length.dto';
 export class AppCommands {
   @SlashCommand({ name: 'ping', description: 'Test PING Koneksi' })
   public async onPing(@Context() [interaction]: SlashCommandContext) {
-    return interaction.reply({ content: 'Semangat 👀' });
+    return interaction.reply({ content: 'Semangat 👀🔥' });
   }
 
   @SlashCommand({ name: 'length', description: 'Mendapatkan panjang teks' })
