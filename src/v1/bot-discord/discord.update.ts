@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Context, On, Once, ContextOf } from 'necord';
-import { Client, MessageReaction, User } from 'discord.js';
+import { Client, VoiceState, MessageReaction, User } from 'discord.js';
 import axios from 'axios';
 
 @Injectable()
