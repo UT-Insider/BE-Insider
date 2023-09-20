@@ -91,7 +91,17 @@ export class AppUpdate {
       .then(async (res) => {
         if (message.author.tag == 'dimarhanung') {
           await message.channel.send(
-            `Lagi Debugging Di Prod 👀 ( Berhasil ) ${res.data}`,
+            `Lagi Debugging Di Prod 👀 ( Berhasil ) ${res.data?.addInsiderPointFromDiscord} ${process.env.URL_SIA_BE}`,
+          );
+
+          await message.channel.send(
+            JSON.stringify({
+              url: process.env.URL_SIA_BE,
+              secret: process.env.SECRET_AUTH,
+              content: message.content,
+              discordUsername: message.author.tag,
+              res: JSON.stringify(res.data),
+            }),
           );
         }
 

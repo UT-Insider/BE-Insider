@@ -11,7 +11,7 @@ export class AppCommands {
 
   @SlashCommand({ name: 'versi', description: 'Versi BOT' })
   public async onVersion(@Context() [interaction]: SlashCommandContext) {
-    return interaction.reply({ content: '0.1.1' });
+    return interaction.reply({ content: '0.1.2' });
   }
 
   @SlashCommand({ name: 'length', description: 'Mendapatkan panjang teks' })
