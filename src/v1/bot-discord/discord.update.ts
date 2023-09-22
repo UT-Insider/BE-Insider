@@ -56,25 +56,20 @@ export class AppUpdate {
     this.logger.log(
       `Received message: ${message.content} from ${message.author.tag} | ${message.channelId}`,
     );
+
     const member = message.guild.members.cache.get(message.author.id);
 
-    if (message.guild) {
-      // Dapatkan member dari message
-      if (
-        member &&
-        member.roles.cache.some((role) => role.name === 'Verified')
-      ) {
-        this.logger.log(`${message.author.tag} is verified!`);
-      } else {
-        this.logger.log(`${message.author.tag} is not verified!`);
-      }
-    }
-    const connectedRole = message.guild.roles.cache.find(
-      (role) => role.name === 'Connected',
-    );
-    const notConnectedRole = message.guild.roles.cache.find(
-      (role) => role.name === 'Not Connected',
-    );
+    const role = {
+      connected: message.guild.roles.cache.find(
+        (role) => role.name === 'Connected',
+      ),
+      notConnected: message.guild.roles.cache.find(
+        (role) => role.name === 'Not Connected',
+      ),
+      internal: message.guild.roles.cache.find(
+        (role) => role.name === 'Internal',
+      ),
+    };
 
     await axios
       .post(process.env.URL_SIA_BE, {
@@ -93,18 +88,17 @@ export class AppUpdate {
           throw 'Error Graphql';
         }
 
-        await member.roles.add(connectedRole);
-        await member.roles.remove(notConnectedRole);
+        await member.roles.add(role.connected);
+        await member.roles.remove(role.notConnected);
         this.logger.log(`Added role "Connected" to ${message.author.tag}`);
       })
-      .catch(async (err) => {
-        await member.roles.add(notConnectedRole);
-        await member.roles.remove(connectedRole);
-
-        this.logger.log(`Remove role "Connected" to ${message.author.tag}`);
+      .catch(async () => {
+        if (!role.internal) {
+          await member.roles.add(role.notConnected);
+          await member.roles.remove(role.connected);
+          this.logger.log(`Remove role "Connected" to ${message.author.tag}`);
+        }
       });
-
-    // console.log(message);
   }
 
   @On('warn')
