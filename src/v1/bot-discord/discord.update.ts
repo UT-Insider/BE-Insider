@@ -1,13 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Context, On, Once, ContextOf } from 'necord';
-import { Client, VoiceState, MessageReaction, User } from 'discord.js';
+import { MessageReaction, User } from 'discord.js';
 import axios from 'axios';
 
 @Injectable()
 export class AppUpdate {
   private readonly logger = new Logger(AppUpdate.name);
-
-  public constructor(private readonly client: Client) {}
 
   @Once('ready')
   public onReady(@Context() [client]: ContextOf<'ready'>) {
