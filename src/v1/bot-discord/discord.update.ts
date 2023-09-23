@@ -1,13 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Context, On, Once, ContextOf } from 'necord';
-import { Client, VoiceState, MessageReaction, User } from 'discord.js';
+import { MessageReaction, User } from 'discord.js';
 import axios from 'axios';
 
 @Injectable()
 export class AppUpdate {
   private readonly logger = new Logger(AppUpdate.name);
-
-  public constructor(private readonly client: Client) {}
 
   @Once('ready')
   public onReady(@Context() [client]: ContextOf<'ready'>) {
@@ -87,26 +85,35 @@ export class AppUpdate {
         if (res.data.errors) {
           throw 'Error Graphql';
         }
-
-        await member.roles.add(role.connected);
-        await member.roles.remove(role.notConnected);
-        this.logger.log(`Added role "Connected" to ${message.author.tag}`);
+        try {
+          await member.roles.add(role.connected);
+          await member.roles.remove(role.notConnected);
+          this.logger.log(`Added role "Connected" to ${message.author.tag}`);
+        } catch (error) {
+          this.logger.error('The Role need to be predefined!');
+        }
       })
       .catch(async () => {
-        if (!role.internal) {
-          await member.roles.add(role.notConnected);
-          await member.roles.remove(role.connected);
-          this.logger.log(`Remove role "Connected" to ${message.author.tag}`);
+        try {
+          if (!role.internal) {
+            await member.roles.add(role.notConnected);
+            await member.roles.remove(role.connected);
+            this.logger.log(`Remove role "Connected" to ${message.author.tag}`);
+          }
+        } catch (error) {
+          this.logger.error('The Role need to be predefined!');
         }
-      });
+      }
+      )
   }
+
 
   @On('warn')
   public onWarn(@Context() [message]: ContextOf<'warn'>) {
     this.logger.warn(message);
   }
 
-  // pantai member left/join voice chanenl
+  // pantau member left/join voice channel
   @On('voiceStateUpdate')
   public async onVoiceStateUpdate(
     @Context() [before, after]: ContextOf<'voiceStateUpdate'>,
