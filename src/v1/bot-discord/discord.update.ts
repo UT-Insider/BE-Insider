@@ -1,10 +1,19 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Context, On, Once, ContextOf } from 'necord';
 import {
+  Context,
+  On,
+  Once,
+  ContextOf,
+  SlashCommand,
+  SlashCommandContext,
+} from 'necord';
+import {
+  AnyThreadChannel,
   Client,
   GuildBasedChannel,
   MessageReaction,
   MessageType,
+  TextChannel,
   User,
 } from 'discord.js';
 import axios from 'axios';
@@ -62,10 +71,12 @@ export class AppUpdate {
      * 👉 Point kontribusi tambahan jika create forum diskusi
      */
     const channelPoints = {
-      '💡︱sharing-idea': 500,
+      '💡︱sharing-ide': 500,
       '😥︱laporan': 400,
       '📚︱sharing-materi': 400,
+      '🏆︱show-off': 400,
       '📅︱sharing-event': 320,
+      '🤝︱self-promote': 100,
     };
     const parentId = thread.parentId; // Ini ID dari channel parent
 
@@ -84,15 +95,17 @@ export class AppUpdate {
       const content = messages.first();
 
       // Dapatkan user dari cache
-      const owner = this.client.users.cache.get(ownerId);
+      const owner = await this.client.users.fetch(ownerId);
 
       console.log('author', owner.tag);
 
       const isAllowedForum = [
-        '💡︱sharing-idea',
+        '💡︱sharing-ide',
         '😥︱laporan',
         '📚︱sharing-materi',
+        '🏆︱show-off',
         '📅︱sharing-event',
+        '🤝︱self-promote',
       ].includes(channel.name);
 
       if (isAllowedForum) {
@@ -195,12 +208,21 @@ export class AppUpdate {
     userTag,
     point,
     content,
+    type = 'message',
   }: {
     guildId: string;
     userTag: string;
     point: number;
     content: string;
+    type?: string;
   }) {
+    console.log({
+      guildId,
+      userTag,
+      point,
+      content,
+      type,
+    });
     const guild = this.client.guilds.cache.get(guildId);
     const member = guild.members.cache.find((m) => m.user.tag === userTag);
 
@@ -236,11 +258,12 @@ export class AppUpdate {
           content: content,
           additionalPoint: point,
           discordUsername: userTag,
-          type: 'threadAdd',
+          type: type,
         },
       })
       .then(async (res) => {
-        if (res.data.errors) {
+        if (res?.data?.errors) {
+          console.log('res', res?.data?.errors);
           throw 'Error Graphql';
         }
         try {
@@ -251,7 +274,8 @@ export class AppUpdate {
           this.logger.error('The Role need to be predefined!');
         }
       })
-      .catch(async () => {
+      .catch(async (err) => {
+        console.log('errr', err);
         try {
           if (!member.roles.cache.some((role) => role.name === 'Internal')) {
             await member.roles.add(role.notConnected);
@@ -262,5 +286,87 @@ export class AppUpdate {
           this.logger.error('The Role need to be predefined!');
         }
       });
+  }
+
+  @SlashCommand({
+    name: 'syncthread',
+    description: 'Sync Poin kontribusi thread ( hanya internal )',
+  })
+  public async getAllThreadsFromChannel(
+    @Context() [interaction]: SlashCommandContext,
+    guildId: string,
+    channelId: string,
+  ) {
+    if (interaction.user.tag != 'dimarhanung') {
+      interaction.reply('sori ga dapet akses');
+      return;
+    }
+
+    const guild = await this.client.guilds.fetch(interaction.guildId);
+    const threads = guild.channels.cache.filter((x) => x.isThread());
+    console.log('step 1');
+    const threadInfo = threads.each(async (info: AnyThreadChannel<boolean>) => {
+      const messages = await info.messages.fetch({ limit: 1 });
+      const title = info.name;
+      const content = messages.first();
+      const owner = await this.client.users.fetch((info as any).ownerId);
+
+      const channelPoints = {
+        '💡︱sharing-ide': 500,
+        '😥︱laporan': 400,
+        '📚︱sharing-materi': 400,
+        '🏆︱show-off': 400,
+        '📅︱sharing-event': 320,
+        '🤝︱self-promote': 100,
+      };
+
+      if (!owner.tag || !channelPoints[info.parent.name]) {
+        console.log('owner tag tidak ditemukan atau poin null');
+        return;
+      }
+
+      await this.addPointsToInsider({
+        content: `##${title}\n${content}`,
+        guildId: guild.id,
+        point: channelPoints[info.parent.name],
+        userTag: owner.tag,
+        type: 'threadAdd',
+      })
+        .then((res) => {
+          console.log('res', res);
+        })
+        .catch((err) => {
+          console.log('err', err);
+        });
+
+      console.log(
+        `Name: ${info.name}\nCreator: ${(info as any).ownerId}\nCreated at: ${
+          info.createdAt
+        }\n`,
+      );
+    });
+    console.log('step 2');
+    if (!guild) {
+      this.logger.warn(`Tidak bisa menemukan guild dengan ID ${guildId}`);
+      return;
+    }
+    interaction.reply({ content: interaction.channel.id });
+    const channel = await guild.channels.fetch(interaction.channel.id);
+
+    if (!channel || !(channel instanceof TextChannel)) {
+      this.logger.warn(
+        `Tidak bisa menemukan channel dengan ID ${channelId} atau bukan TextChannel`,
+      );
+      return;
+    }
+
+    try {
+      const threadList = await channel.threads.fetch();
+      threadList.threads.each((thread) => {
+        this.logger.log(`Thread: ${thread.name}, ID: ${thread.id}`);
+      });
+    } catch (error) {
+      this.logger.error(`Ada masalah saat fetch thread: ${error.message}`);
+    }
   }
 }
