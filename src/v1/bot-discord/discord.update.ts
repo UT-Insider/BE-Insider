@@ -21,9 +21,10 @@ import OpenAi from 'openai';
 
 @Injectable()
 export class AppUpdate {
-  public constructor(private readonly client: Client) {}
+  public constructor(private readonly client: Client) { }
 
   private readonly logger = new Logger(AppUpdate.name);
+  private join_voice: { [userId: string]: number } = {}; //Waktu voice disimpan disini
 
   private openai = new OpenAi({
     apiKey: process.env.NEST_OPENAI_API_KEY,
@@ -244,18 +245,23 @@ export class AppUpdate {
     this.logger.warn(message);
   }
 
-  // pantau member left/join voice channel
+
   @On('voiceStateUpdate')
   public async onVoiceStateUpdate(
     @Context() [before, after]: ContextOf<'voiceStateUpdate'>,
   ) {
-    const member = after.member || before.member; // Njumuk objek member sing join/left voice
+    const member = after.member || before.member;
     const userId = member.id;
     if (before.channel && !after.channel) {
-      //left
-      this.logger.log(`User ${userId} left a voice channel`);
+      if (this.join_voice[userId]) {
+        const join_timestamp = this.join_voice[userId]; //Mengambil waktu dari private join_voice class
+        const milisecond = Date.now() - join_timestamp; //Waktu leave - waktu join = Total waktu berada di Voice
+        const second = milisecond / 1000; //Convert milidetik ke detik
+        this.logger.log(`User ${userId} keluar Voice Channel, total waktu ${second} detik`);
+        delete this.join_voice[userId]; //User leave, waktu dihapus
+      }
     } else if (!before.channel && after.channel) {
-      //join
+      this.join_voice[userId] = Date.now(); //User Join, waktu disimpan
       this.logger.log(`User ${userId} joined a voice channel`);
     }
   }
@@ -397,8 +403,7 @@ export class AppUpdate {
         });
 
       console.log(
-        `Name: ${info.name}\nCreator: ${(info as any).ownerId}\nCreated at: ${
-          info.createdAt
+        `Name: ${info.name}\nCreator: ${(info as any).ownerId}\nCreated at: ${info.createdAt
         }\n`,
       );
     });
