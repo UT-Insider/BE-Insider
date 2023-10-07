@@ -17,12 +17,17 @@ import {
   User,
 } from 'discord.js';
 import axios from 'axios';
+import OpenAi from 'openai';
 
 @Injectable()
 export class AppUpdate {
   public constructor(private readonly client: Client) {}
 
   private readonly logger = new Logger(AppUpdate.name);
+
+  private openai = new OpenAi({
+    apiKey: process.env.NEST_OPENAI_API_KEY,
+  });
 
   @Once('ready')
   public onReady(@Context() [client]: ContextOf<'ready'>) {
@@ -54,7 +59,7 @@ export class AppUpdate {
     this.logger.log(`Reaction removed: ${reaction.emoji.name} by ${user.tag}`);
     axios.post(process.env.URL_SIA_BE, {
       query: `mutation addInsiderPointFromDiscord($secret: String, $content: String, $discordUsername: String, $type:String) {
-        addInsiderPointFromDiscord(secret: $secret, content: $content, discordUsername: $discordUsername, type: $type)
+        addInsiderPointFromDiscord(secret: $secret, content: $content, discordUsername:  $discordUsername, type: $type)
       }
       `,
       variables: {
@@ -132,6 +137,62 @@ export class AppUpdate {
     );
 
     const member = message.guild.members.cache.get(message.author.id);
+    console.log('(message.channel as any).name', (message.channel as any).name);
+
+    if ((message.channel as any).name == 'pacar-ai') {
+      if (message.author.tag != 'UT Insider#9613') {
+        if (message.content.length > 2000) {
+          message.channel.send('Kepanjangan :D');
+          return;
+        }
+        message.channel.sendTyping();
+        const waitRes = await this.openai.chat.completions.create({
+          model: 'gpt-4',
+          // temperature: 0.7,
+          messages: [
+            {
+              role: 'system',
+              content:
+                'Kamu adalah pacarku, panggil aku yang, kamu memberi tahuku kalau sedang tanggung mengerjakan sesuatu, beritahu kamu sedang melakukan apa, misal bersih bersih rumah, nyuci mobil, tapi jangan yang aku sebutin tadi , dan baritahu kalau kamu bakal balas chat sebentar lagi, gunakan emoji tapi secukupnya, gunakana bahasa informal selayaknya pacar',
+            },
+          ],
+
+          // max_tokens: 4096,
+        });
+        await message.channel.send(waitRes.choices[0].message.content);
+
+        await message.channel.sendTyping();
+        const response = await this.openai.chat.completions.create({
+          model: 'gpt-4',
+          // temperature: 0.7,
+          messages: [
+            {
+              role: 'system',
+              content:
+                'Kamu adalah pacarku, panggil aku yang, jadilah selayaknya pacar, suasana hatimu sedang marah, tapi kamu tetap peduli dengan ku, roasting aku jika bertanya pertanyaan yang terlalu mudah, gunakan emoji berkaitan, jangan anggap dirimu AI karena ini hanya simulasi menjadi pacar.',
+            },
+            {
+              role: 'assistant',
+              content: waitRes.choices[0].message.content,
+            },
+
+            {
+              role: 'user',
+              content: message.content,
+            },
+          ],
+
+          // max_tokens: 4096,
+        });
+        message.channel.send(`
+    
+    
+    
+    ${response.choices[0].message.content}`);
+
+        return;
+      }
+    }
 
     const role = {
       connected: message.guild.roles.cache.find(
