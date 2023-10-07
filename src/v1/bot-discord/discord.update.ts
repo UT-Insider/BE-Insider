@@ -145,21 +145,21 @@ export class AppUpdate {
           message.channel.send('Kepanjangan :D');
           return;
         }
-        message.channel.sendTyping();
-        const waitRes = await this.openai.chat.completions.create({
-          model: 'gpt-4',
-          // temperature: 0.7,
-          messages: [
-            {
-              role: 'system',
-              content:
-                'Kamu adalah pacarku, panggil aku yang, kamu memberi tahuku kalau sedang tanggung mengerjakan sesuatu, beritahu kamu sedang melakukan apa, misal bersih bersih rumah, nyuci mobil, tapi jangan yang aku sebutin tadi , dan baritahu kalau kamu bakal balas chat sebentar lagi, gunakan emoji tapi secukupnya, gunakana bahasa informal selayaknya pacar',
-            },
-          ],
+        // message.channel.sendTyping();
+        // const waitRes = await this.openai.chat.completions.create({
+        //   model: 'gpt-4',
+        //   // temperature: 0.7,
+        //   messages: [
+        //     {
+        //       role: 'system',
+        //       content:
+        //         'Kamu adalah pacarku, panggil aku yang, kamu memberi tahuku kalau sedang tanggung mengerjakan sesuatu, beritahu kamu sedang melakukan apa, misal bersih bersih rumah, nyuci mobil, tapi jangan yang aku sebutin tadi , dan baritahu kalau kamu bakal balas chat sebentar lagi, gunakan emoji tapi secukupnya, gunakana bahasa informal selayaknya pacar',
+        //     },
+        //   ],
 
-          // max_tokens: 4096,
-        });
-        await message.channel.send(waitRes.choices[0].message.content);
+        //   // max_tokens: 4096,
+        // });
+        // await message.channel.send(waitRes.choices[0].message.content);
 
         await message.channel.sendTyping();
         const response = await this.openai.chat.completions.create({
@@ -171,10 +171,6 @@ export class AppUpdate {
               content:
                 'Kamu adalah pacarku, panggil aku yang, jadilah selayaknya pacar, suasana hatimu sedang marah, tapi kamu tetap peduli dengan ku, roasting aku jika bertanya pertanyaan yang terlalu mudah, gunakan emoji berkaitan, jangan anggap dirimu AI karena ini hanya simulasi menjadi pacar.',
             },
-            {
-              role: 'assistant',
-              content: waitRes.choices[0].message.content,
-            },
 
             {
               role: 'user',
@@ -184,11 +180,11 @@ export class AppUpdate {
 
           // max_tokens: 4096,
         });
-        message.channel.send(`
-    
-    
-    
-    ${response.choices[0].message.content}`);
+
+        message.reply(response.choices[0].message.content);
+        //     message.channel.send(`
+
+        // ${response.choices[0].message.content}`);
 
         return;
       }
