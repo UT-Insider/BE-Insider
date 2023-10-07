@@ -2,18 +2,18 @@ import { Injectable } from '@nestjs/common';
 import { Context, Options, SlashCommand, SlashCommandContext } from 'necord';
 import { LengthDto } from './dtos/length.dto';
 
-
 @Injectable()
 export class AppCommands {
   @SlashCommand({ name: 'ping', description: 'Ping bot connection' })
   public async onPing(@Context() [interaction]: SlashCommandContext) {
-
-    interaction.reply(`UT Insider heartbeat: ${Date.now() - interaction.createdTimestamp}ms.`);
+    interaction.reply(
+      `UT Insider heartbeat: ${Date.now() - interaction.createdTimestamp}ms.`,
+    );
   }
 
   @SlashCommand({ name: 'versi', description: 'Versi BOT' })
   public async onVersion(@Context() [interaction]: SlashCommandContext) {
-    return interaction.reply({ content: '0.1.3' });
+    return interaction.reply({ content: '0.1.4' });
   }
 
   @SlashCommand({ name: 'length', description: 'Mendapatkan panjang teks' })
