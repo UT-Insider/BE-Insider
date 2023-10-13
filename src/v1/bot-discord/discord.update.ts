@@ -186,7 +186,7 @@ export class AppUpdate {
         if (channel && channel.isTextBased()) {
           const messages = await channel.messages.fetch({ limit: fetchLimit });
           const messagesArray = Array.from(messages.values());
-
+          messagesArray.reverse();
           const userAndBotMessages = messagesArray.filter(
             (m) =>
               m.author.tag === message.author.tag ||
@@ -194,13 +194,13 @@ export class AppUpdate {
                 m.reference?.messageId &&
                 messages.has(m.reference.messageId)),
           );
-          console.log('userAndBotMessages', userAndBotMessages);
+          // console.log('userAndBotMessages', userAndBotMessages);
           const lastUserAndBotMessages = userAndBotMessages.slice(
             -lastNMessages,
           );
           this.logger.log(`===============================`);
           lastUserAndBotMessages.forEach((message) => {
-            gptMessage.unshift({
+            gptMessage.push({
               role:
                 message.author.tag == 'UT Insider#9613' ? 'assistant' : 'user',
               content: message.content,
@@ -213,6 +213,7 @@ export class AppUpdate {
         }
 
         // END Fetch Message
+        console.log(gptMessage);
 
         await message.channel.sendTyping();
         const response = await this.openai.chat.completions.create({
