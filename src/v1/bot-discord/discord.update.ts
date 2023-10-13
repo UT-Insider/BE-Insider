@@ -145,21 +145,6 @@ export class AppUpdate {
           message.channel.send('Kepanjangan :D');
           return;
         }
-        // message.channel.sendTyping();
-        // const waitRes = await this.openai.chat.completions.create({
-        //   model: 'gpt-4',
-        //   // temperature: 0.7,
-        //   messages: [
-        //     {
-        //       role: 'system',
-        //       content:
-        //         'Kamu adalah pacarku, panggil aku yang, kamu memberi tahuku kalau sedang tanggung mengerjakan sesuatu, beritahu kamu sedang melakukan apa, misal bersih bersih rumah, nyuci mobil, tapi jangan yang aku sebutin tadi , dan baritahu kalau kamu bakal balas chat sebentar lagi, gunakan emoji tapi secukupnya, gunakana bahasa informal selayaknya pacar',
-        //     },
-        //   ],
-
-        //   // max_tokens: 4096,
-        // });
-        // await message.channel.send(waitRes.choices[0].message.content);
 
         await message.channel.sendTyping();
         const response = await this.openai.chat.completions.create({
@@ -177,14 +162,73 @@ export class AppUpdate {
               content: message.content,
             },
           ],
-
-          // max_tokens: 4096,
         });
 
         message.reply(response.choices[0].message.content);
-        //     message.channel.send(`
 
-        // ${response.choices[0].message.content}`);
+        return;
+      }
+    }
+
+    if ((message.channel as any).name == 'pelayan-kerajaan') {
+      if (message.author.tag != 'UT Insider#9613') {
+        if (message.content.length > 2000) {
+          message.channel.send('Kepanjangan :D');
+          return;
+        }
+
+        // START Fetch Message
+        const fetchLimit = 100; // bisa diset sesuai kebutuhan
+        const lastNMessages = 10;
+        const gptMessage: OpenAi.Chat.Completions.ChatCompletionMessageParam[] =
+          [];
+        const channel = (await message.channel.fetch()) as TextChannel;
+        if (channel && channel.isTextBased()) {
+          const messages = await channel.messages.fetch({ limit: fetchLimit });
+          const messagesArray = Array.from(messages.values());
+
+          const userAndBotMessages = messagesArray.filter(
+            (m) =>
+              m.author.tag === message.author.tag ||
+              (m.author.tag === 'UT Insider#9613' &&
+                m.reference?.messageId &&
+                messages.has(m.reference.messageId)),
+          );
+          console.log('userAndBotMessages', userAndBotMessages);
+          const lastUserAndBotMessages = userAndBotMessages.slice(
+            -lastNMessages,
+          );
+          this.logger.log(`===============================`);
+          lastUserAndBotMessages.forEach((message) => {
+            gptMessage.unshift({
+              role:
+                message.author.tag == 'UT Insider#9613' ? 'assistant' : 'user',
+              content: message.content,
+            });
+
+            // this.logger.log(
+            //   `Pesan dari ${message.author.username}: ${message.content}`,
+            // );
+          });
+        }
+
+        // END Fetch Message
+
+        await message.channel.sendTyping();
+        const response = await this.openai.chat.completions.create({
+          model: 'gpt-4',
+          // temperature: 0.7,
+          messages: [
+            {
+              role: 'system',
+              content:
+                'Kamu adalah pelayan kerajaan yang mempunyai pengetahuan dari masa depan, user adalah rajamu, panggil user sebagai yang mulia, karena kamu ada di abad pertengahan dan belum ada teknologi modern, jelaskan kepada raja menggunakan pengandaian yang ada pada abad pertengahan, gunakan bahasa dramatis dan sedikit bahasa kiasan',
+            },
+            ...gptMessage,
+          ],
+        });
+
+        message.reply(response.choices[0].message.content);
 
         return;
       }
